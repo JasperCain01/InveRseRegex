@@ -7,7 +7,7 @@
 # backslash so the generated regex matches the character itself.
 #
 # Judgement call: we escape only characters that are actually special outside a
-# character class. In particular `-` and `/` are NOT escaped — `-` is only
+# character class. In particular `-` and `/` are NOT escaped -- `-` is only
 # special inside `[...]`, and we never build classes out of user literals (our
 # only character classes are the fixed atoms `[A-Za-z]` etc.), so escaping it
 # would just add noise (`\d{3}\-\d{4}`) to patterns humans have to read. `/` is
@@ -33,4 +33,10 @@ escape_regex <- function(x) {
 # messages; this wrapper just documents intent at call sites.
 match_choice <- function(arg, choices) {
   match.arg(arg, choices)
+}
+
+# Take at most the first `n` elements of `x`. A tiny local stand-in for
+# utils::head() so the package needs no dependency at all (not even utils).
+take <- function(x, n) {
+  x[seq_len(min(n, length(x)))]
 }

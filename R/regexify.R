@@ -15,7 +15,7 @@
 #   flavor = "posix" : digit -> [0-9]   alpha -> [A-Za-z]   space -> [[:space:]]
 #
 # For an "other" token we emit the escaped literal character itself. Note that
-# in R source, "\\d" is the two-character string backslash + d — i.e. the real
+# in R source, "\\d" is the two-character string backslash + d -- i.e. the real
 # regex atom `\d`. The double backslash is R's string escaping, not part of the
 # pattern (see also `as_r_literal()`).
 base_fragment <- function(tok, flavor) {
@@ -35,7 +35,7 @@ base_fragment <- function(tok, flavor) {
 #
 # Judgement call: quantifier generalization (`{n}` / `+`) is only applied to the
 # class-based tokens (digit/alpha/space). "other" literals are never turned into
-# `+` — `\-+` would surprisingly match "----" — so a repeated literal uses `{n}`
+# `+` -- `\-+` would surprisingly match "----" -- so a repeated literal uses `{n}`
 # and a lone literal stays exact. This keeps generated patterns intuitive.
 render_token <- function(tok, level, flavor) {
   base <- base_fragment(tok, flavor)
@@ -305,9 +305,9 @@ infer_auto_anchor <- function(text, want) {
 #
 # Run the generated pattern against the source text and report:
 #   * `missing` : requested values the pattern fails to match (a real bug in the
-#                 result — warned about loudly).
+#                 result -- warned about loudly).
 #   * `extras`  : substrings the pattern matches that were not requested (a sign
-#                 the pattern may be over-general — warned about as a heads-up).
+#                 the pattern may be over-general -- warned about as a heads-up).
 # The full vector of matches is returned for display.
 verify_pattern <- function(pattern, text, want, flavor) {
   perl <- flavor == "pcre"
@@ -328,7 +328,7 @@ verify_pattern <- function(pattern, text, want, flavor) {
   # Count extra *occurrences* (not just distinct values) beyond what was asked.
   n_extra <- length(full) - sum(full %in% wanted)
   if (n_extra > 0L) {
-    eg <- utils::head(unique(extras), 3L)
+    eg <- take(unique(extras), 3L)
     warning(sprintf(
       "Generated pattern also matches %d other substring(s) in the text%s. Consider a stricter `generalize` level or anchoring.",
       n_extra,

@@ -41,7 +41,7 @@ print.regexify <- function(x, ...) {
     # Match summary is only present when the pattern was verified.
     if (!is.null(meta$matches)) {
       n <- length(meta$matches)
-      shown <- utils::head(meta$matches, 5L)
+      shown <- take(meta$matches, 5L)
       detail <- if (n > 0L) paste0(" (", paste(shown, collapse = ", "), ")") else ""
       cat(sprintf("  matches : %d in text%s\n", n, detail))
     }
@@ -50,7 +50,7 @@ print.regexify <- function(x, ...) {
     }
     if (length(meta$extras) > 0L) {
       cat("  ! also matched: ",
-          paste(utils::head(meta$extras, 5L), collapse = ", "), "\n", sep = "")
+          paste(take(meta$extras, 5L), collapse = ", "), "\n", sep = "")
     }
   }
   invisible(x)

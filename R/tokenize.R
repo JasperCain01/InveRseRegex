@@ -15,7 +15,7 @@
 #      the friendly default treats a letter as a letter. Case structure can still
 #      be recovered by the caller escaping to the `exact` level.
 #    - "space" covers any whitespace and is rendered `\s`.
-#    - "other" is everything else (punctuation, symbols, and — deliberately —
+#    - "other" is everything else (punctuation, symbols, and -- deliberately --
 #      any non-ASCII character, since `[A-Za-z]`/`[0-9]` are ASCII-only here).
 #      "other" runs are escaped and emitted literally, which is always safe.
 #
@@ -32,7 +32,7 @@
 #
 # We test against ASCII ranges explicitly (rather than POSIX classes like
 # `[[:alpha:]]`) so the behaviour does not silently change with the user's
-# locale — reproducibility matters more than locale-awareness for a code
+# locale -- reproducibility matters more than locale-awareness for a code
 # generator.
 char_class <- function(ch) {
   if (grepl("[0-9]", ch)) return("digit")
@@ -64,7 +64,7 @@ tokenize <- function(x) {
   tokens <- list()
   run_start <- 1L
 
-  # Walk the characters, closing off a run whenever the class changes — or,
+  # Walk the characters, closing off a run whenever the class changes -- or,
   # within an "other" run, whenever the literal character itself changes.
   emit <- function(from, to) {
     cls <- classes[[from]]

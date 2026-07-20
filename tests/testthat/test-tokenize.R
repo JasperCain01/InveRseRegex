@@ -13,7 +13,9 @@ test_that("char_class recognises the four coarse classes", {
 
 test_that("a non-ASCII letter is treated as 'other', not 'alpha'", {
   # This documents the deliberate ASCII-only scope of the alpha/digit classes.
-  expect_equal(InveRseRegex:::char_class("é"), "other")  # e-acute
+  # Written as a \u escape so the test source stays pure ASCII (keeps R CMD
+  # check quiet about non-ASCII characters).
+  expect_equal(InveRseRegex:::char_class("\u00e9"), "other")  # e-acute
 })
 
 test_that("tokenize merges runs of the same class", {

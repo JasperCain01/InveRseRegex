@@ -1,5 +1,5 @@
 # Stage 6 tests: harden the POSIX flavor by confirming the patterns it emits
-# actually work with base R's DEFAULT regex engine (perl = FALSE, i.e. TRE) —
+# actually work with base R's DEFAULT regex engine (perl = FALSE, i.e. TRE) --
 # that is the whole point of offering a POSIX flavor, so it is worth asserting
 # against the real engine rather than just string-comparing the output.
 

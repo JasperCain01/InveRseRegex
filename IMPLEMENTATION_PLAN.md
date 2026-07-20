@@ -76,7 +76,7 @@ print(<regexify>)        # shows raw pattern + R-literal + match summary
       (levels/`posix` translation already delivered in S3).
 - [x] **S7 — Docs & infra**: roxygen docs/NAMESPACE, README, GitHub Actions
       `R-CMD-check`, SessionStart hook for web sessions.
-- [ ] **S8 — Green check**: full `R CMD check` clean; final polish.
+- [x] **S8 — Green check**: full `R CMD check` clean; final polish.
 
 ## 5. Testing expectations (this cloud sandbox)
 
@@ -93,6 +93,14 @@ Newest entries at the top. Each entry records the stage, the commit, and any
 deviation or judgement call made along the way.
 
 <!-- LOG:START -->
+- **S8 — Green check.** `R CMD check` passes with **0 errors, 0 warnings**. To
+  get there: replaced `utils::head` with a tiny internal `take()` so the package
+  needs *no* dependency (not even `utils`); made all R/test sources pure ASCII
+  (em-dashes -> `--`, the non-ASCII test literal -> `"é"`); and generated
+  the `en_US.UTF-8` locale in the sandbox to clear a locale WARNING. One NOTE
+  remains -- "unable to verify current time" -- which is purely the sandbox
+  proxy blocking the time server and is not a package issue (CRAN ignores it).
+  Full suite green.
 - **S7 — Docs & infra.** Added `README.md` (with real, captured example output),
   a cross-platform GitHub Actions `R-CMD-check` workflow, and a `SessionStart`
   hook (`.claude/hooks/session-start.sh` + `.claude/settings.json`) that
