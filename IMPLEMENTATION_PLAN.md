@@ -68,7 +68,7 @@ print(<regexify>)        # shows raw pattern + R-literal + match summary
 
 - [x] **S1 — Skeleton**: DESCRIPTION, LICENSE, .Rbuildignore, .gitignore, this plan.
 - [x] **S2 — Tokenizer**: `tokenize()` + character-class inference + unit tests.
-- [ ] **S3 — Core `regexify`**: compact/PCRE path, capture, escaping + tests.
+- [x] **S3 — Core `regexify`**: all levels + PCRE/POSIX, capture, escaping + tests.
 - [ ] **S4 — Anchoring, verify, multi-example**: `auto` anchors, verification
       + over-match warnings, vector `want` + tests.
 - [ ] **S5 — Display helpers**: `as_r_literal()`, `print.regexify` + tests.
@@ -93,6 +93,18 @@ Newest entries at the top. Each entry records the stage, the commit, and any
 deviation or judgement call made along the way.
 
 <!-- LOG:START -->
+- **S3 — Core generator.** Added `R/regexify.R` with the per-token renderer and
+  the public `regexify()`, plus the package doc and roxygen-generated
+  `NAMESPACE`/`man/`. **Deviation from the plan:** all four generalization
+  levels *and* the POSIX flavor were implemented now rather than being deferred
+  to S6 — they share one small `render_token()`/`base_fragment()` path, so
+  splitting them would have been artificial. S6 is therefore reduced to POSIX
+  edge-case hardening. Judgement calls: (a) quantifier generalization (`{n}`,
+  `+`) applies only to class tokens; repeated literals use `{n}` and never `+`
+  (`\-+` would surprise); (b) the return value is a classed character
+  (`"regexify"`) so it prints nicely yet still works directly as a pattern;
+  (c) multi-`want` and `auto` anchoring are explicitly guarded/stubbed pending
+  S4. 12 core tests pass (24 total).
 - **S2 — Tokenizer.** Added `R/tokenize.R` (four coarse classes: digit / alpha /
   space / other) and `R/utils.R` (regex-literal escaping). Judgement calls:
   (a) letters of both cases fold into one `alpha` class rendered `[A-Za-z]` —
