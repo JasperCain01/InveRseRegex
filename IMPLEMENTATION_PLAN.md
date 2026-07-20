@@ -67,7 +67,7 @@ print(<regexify>)        # shows raw pattern + R-literal + match summary
 ## 4. Build stages (each ends in a commit)
 
 - [x] **S1 — Skeleton**: DESCRIPTION, LICENSE, .Rbuildignore, .gitignore, this plan.
-- [ ] **S2 — Tokenizer**: `tokenize()` + character-class inference + unit tests.
+- [x] **S2 — Tokenizer**: `tokenize()` + character-class inference + unit tests.
 - [ ] **S3 — Core `regexify`**: compact/PCRE path, capture, escaping + tests.
 - [ ] **S4 — Anchoring, verify, multi-example**: `auto` anchors, verification
       + over-match warnings, vector `want` + tests.
@@ -93,6 +93,15 @@ Newest entries at the top. Each entry records the stage, the commit, and any
 deviation or judgement call made along the way.
 
 <!-- LOG:START -->
+- **S2 — Tokenizer.** Added `R/tokenize.R` (four coarse classes: digit / alpha /
+  space / other) and `R/utils.R` (regex-literal escaping). Judgement calls:
+  (a) letters of both cases fold into one `alpha` class rendered `[A-Za-z]` —
+  case-preserving would over-fit; (b) classification uses explicit ASCII ranges
+  rather than locale-sensitive POSIX classes, for reproducibility, which means
+  non-ASCII letters fall into `other` and are emitted as escaped literals;
+  (c) runs of `other` only merge when the identical character repeats.
+  Toolchain: installed R 4.3.3 + dev packages via **apt** (CRAN blocked). 8
+  tokenizer tests pass.
 - **S1 — Skeleton.** Added `DESCRIPTION` (base-R-only, `stringr`/`testthat` as
   Suggests), MIT `LICENSE`/`LICENSE.md`, `.Rbuildignore`, `.gitignore`, and this
   plan. Judgement calls: (a) package name kept as `InveRseRegex` to match the
