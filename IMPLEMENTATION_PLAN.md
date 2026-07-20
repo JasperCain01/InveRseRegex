@@ -69,7 +69,7 @@ print(<regexify>)        # shows raw pattern + R-literal + match summary
 - [x] **S1 — Skeleton**: DESCRIPTION, LICENSE, .Rbuildignore, .gitignore, this plan.
 - [x] **S2 — Tokenizer**: `tokenize()` + character-class inference + unit tests.
 - [x] **S3 — Core `regexify`**: all levels + PCRE/POSIX, capture, escaping + tests.
-- [ ] **S4 — Anchoring, verify, multi-example**: `auto` anchors, verification
+- [x] **S4 — Anchoring, verify, multi-example**: `auto` anchors, verification
       + over-match warnings, vector `want` + tests.
 - [ ] **S5 — Display helpers**: `as_r_literal()`, `print.regexify` + tests.
 - [ ] **S6 — Other levels & POSIX flavor**: `class`/`loose`/`exact`, `posix`
@@ -93,6 +93,18 @@ Newest entries at the top. Each entry records the stage, the commit, and any
 deviation or judgement call made along the way.
 
 <!-- LOG:START -->
+- **S4 — Anchoring, verification, multi-value.** `auto` anchoring now inspects
+  how the value sits in the text: whole-text match → `^…$`; otherwise a `\b` is
+  added at an edge only when it is both useful and *consistent with the observed
+  context*, so an auto-anchor never breaks the match it describes. Verification
+  runs the pattern back over the text and warns on (a) requested values it fails
+  to match and (b) extra substrings it matches (possible over-generalisation);
+  matches are stored for the print method. Multi-value `want` aligns identical
+  class-sequences into a merged template with `{min,max}` ranges, and falls back
+  to an honest alternation when structures differ. Judgement calls: (a) aligned
+  merging requires "other" runs to share the exact literal, so `1-2`/`1/2` do
+  not merge; (b) anchor decisions use each value's first occurrence but must
+  hold for all values. 24 new tests; 61 total pass.
 - **S3 — Core generator.** Added `R/regexify.R` with the per-token renderer and
   the public `regexify()`, plus the package doc and roxygen-generated
   `NAMESPACE`/`man/`. **Deviation from the plan:** all four generalization
