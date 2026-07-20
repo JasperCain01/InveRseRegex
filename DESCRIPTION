@@ -1,0 +1,25 @@
+Package: InveRseRegex
+Title: Infer Regular Expressions from Example Text
+Version: 0.0.0.9000
+Authors@R:
+    person("InveRseRegex", "Authors", email = "noreply@example.com",
+           role = c("aut", "cre"))
+Description: A lightweight tool for the inverse of the usual regex workflow:
+    instead of writing a pattern to find text, you provide the text and the
+    value(s) you want to extract, and 'InveRseRegex' infers a regular
+    expression that captures them. Patterns are generalised at a configurable
+    level (from a literal escape to compact character-class quantifiers) and
+    verified against the input before being returned, so they can be used
+    directly with 'stringr', 'grepl()', 'regmatches()' and similar.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+Depends:
+    R (>= 4.0)
+Suggests:
+    stringr,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+URL: https://github.com/JasperCain01/InveRseRegex
+BugReports: https://github.com/JasperCain01/InveRseRegex/issues

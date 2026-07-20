@@ -1,0 +1,12 @@
+# R build/session artefacts
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+/*.tar.gz
+/*.Rcheck/
+inst/doc
+
+# OS cruft
+.DS_Store
