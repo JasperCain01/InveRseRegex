@@ -72,8 +72,8 @@ print(<regexify>)        # shows raw pattern + R-literal + match summary
 - [x] **S4 — Anchoring, verify, multi-example**: `auto` anchors, verification
       + over-match warnings, vector `want` + tests.
 - [x] **S5 — Display helpers**: `as_r_literal()`, `print.regexify` + tests.
-- [ ] **S6 — Other levels & POSIX flavor**: `class`/`loose`/`exact`, `posix`
-      translation + tests.
+- [x] **S6 — POSIX hardening**: end-to-end tests against base R's default engine
+      (levels/`posix` translation already delivered in S3).
 - [ ] **S7 — Docs & infra**: roxygen docs/NAMESPACE, README, GitHub Actions
       `R-CMD-check`, SessionStart hook for web sessions.
 - [ ] **S8 — Green check**: full `R CMD check` clean; final polish.
@@ -93,6 +93,13 @@ Newest entries at the top. Each entry records the stage, the commit, and any
 deviation or judgement call made along the way.
 
 <!-- LOG:START -->
+- **S6 — POSIX hardening.** Since all generalization levels and the POSIX
+  translation shipped in S3, this stage validated the POSIX flavor end-to-end.
+  Empirically confirmed base R's default TRE engine (`perl = FALSE`) accepts
+  everything the POSIX flavor emits — `\b`, `[[:space:]]`, `{m,n}` ranges, and
+  even non-capturing `(?:...)` groups — so no code change was needed. Added 5
+  tests that run generated POSIX patterns through `grepl(perl = FALSE)` against
+  the real engine. 71 total pass.
 - **S5 — Display helpers.** `as_r_literal()` (built on `encodeString`) returns
   the paste-ready, double-escaped R source form of a pattern, defusing the
   `\d` vs `"\\d"` confusion. `print.regexify` shows the raw pattern, its R
