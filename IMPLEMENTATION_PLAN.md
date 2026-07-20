@@ -71,7 +71,7 @@ print(<regexify>)        # shows raw pattern + R-literal + match summary
 - [x] **S3 — Core `regexify`**: all levels + PCRE/POSIX, capture, escaping + tests.
 - [x] **S4 — Anchoring, verify, multi-example**: `auto` anchors, verification
       + over-match warnings, vector `want` + tests.
-- [ ] **S5 — Display helpers**: `as_r_literal()`, `print.regexify` + tests.
+- [x] **S5 — Display helpers**: `as_r_literal()`, `print.regexify` + tests.
 - [ ] **S6 — Other levels & POSIX flavor**: `class`/`loose`/`exact`, `posix`
       translation + tests.
 - [ ] **S7 — Docs & infra**: roxygen docs/NAMESPACE, README, GitHub Actions
@@ -93,6 +93,12 @@ Newest entries at the top. Each entry records the stage, the commit, and any
 deviation or judgement call made along the way.
 
 <!-- LOG:START -->
+- **S5 — Display helpers.** `as_r_literal()` (built on `encodeString`) returns
+  the paste-ready, double-escaped R source form of a pattern, defusing the
+  `\d` vs `"\\d"` confusion. `print.regexify` shows the raw pattern, its R
+  source form, and a verification summary (matches / unmatched / also-matched).
+  Confirmed a `regexify` result is still an ordinary character that base regex
+  functions accept directly. 5 new tests; 66 total pass.
 - **S4 — Anchoring, verification, multi-value.** `auto` anchoring now inspects
   how the value sits in the text: whole-text match → `^…$`; otherwise a `\b` is
   added at an edge only when it is both useful and *consistent with the observed
