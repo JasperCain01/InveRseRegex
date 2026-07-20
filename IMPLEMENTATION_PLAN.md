@@ -74,7 +74,7 @@ print(<regexify>)        # shows raw pattern + R-literal + match summary
 - [x] **S5 — Display helpers**: `as_r_literal()`, `print.regexify` + tests.
 - [x] **S6 — POSIX hardening**: end-to-end tests against base R's default engine
       (levels/`posix` translation already delivered in S3).
-- [ ] **S7 — Docs & infra**: roxygen docs/NAMESPACE, README, GitHub Actions
+- [x] **S7 — Docs & infra**: roxygen docs/NAMESPACE, README, GitHub Actions
       `R-CMD-check`, SessionStart hook for web sessions.
 - [ ] **S8 — Green check**: full `R CMD check` clean; final polish.
 
@@ -93,6 +93,16 @@ Newest entries at the top. Each entry records the stage, the commit, and any
 deviation or judgement call made along the way.
 
 <!-- LOG:START -->
+- **S7 — Docs & infra.** Added `README.md` (with real, captured example output),
+  a cross-platform GitHub Actions `R-CMD-check` workflow, and a `SessionStart`
+  hook (`.claude/hooks/session-start.sh` + `.claude/settings.json`) that
+  provisions R via apt in web sessions. Judgement calls: (a) the hook is
+  idempotent and remote-only, installing from apt because CRAN is blocked in the
+  sandbox; (b) it runs **synchronously** for now (guarantees R is ready before
+  the agent runs, at the cost of slower session start) — worth switching to
+  async given the devtools install time; (c) README documents ASCII-only classes
+  and the ambiguity caveat so expectations are set. Hook fast-path and a sample
+  test file validated.
 - **S6 — POSIX hardening.** Since all generalization levels and the POSIX
   translation shipped in S3, this stage validated the POSIX flavor end-to-end.
   Empirically confirmed base R's default TRE engine (`perl = FALSE`) accepts
