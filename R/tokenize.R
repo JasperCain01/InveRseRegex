@@ -8,12 +8,17 @@
 #
 # Design / judgement calls captured here:
 #
-#  * We use FOUR coarse classes only: "digit", "alpha", "space", "other".
-#    - Letters of either case are folded into a single "alpha" class rendered as
-#      `[A-Za-z]`. Keeping upper/lower separate (e.g. `[A-Z][a-z]{2}` for "Abc")
-#      is more specific but over-fits most real use cases and surprises users, so
-#      the friendly default treats a letter as a letter. Case structure can still
-#      be recovered by the caller escaping to the `exact` level.
+#  * We use FOUR coarse classes: "digit", "alpha", "space", "other".
+#    - Letters can be handled in two ways, chosen by the `case_sensitive` flag
+#      threaded down from `regexify()`:
+#        * case_sensitive = TRUE (default): an "alpha" run is further split by
+#          case into "upper" (`[A-Z]`) and "lower" (`[a-z]`) runs, so a
+#          capitalised word "Margaret" tokenises to upper(1) + lower(7) and
+#          naturally renders `[A-Z][a-z]{7}`. This is what makes patterns like
+#          "the first two capitalised words" expressible.
+#        * case_sensitive = FALSE: letters of either case fold into one "alpha"
+#          class rendered `[A-Za-z]` (the original, case-insensitive behaviour),
+#          which over-fits less when case is irrelevant.
 #    - "space" covers any whitespace and is rendered `\s`.
 #    - "other" is everything else (punctuation, symbols, and -- deliberately --
 #      any non-ASCII character, since `[A-Za-z]`/`[0-9]` are ASCII-only here).
@@ -41,25 +46,43 @@ char_class <- function(ch) {
   "other"
 }
 
+# Refine a coarse class into a case-aware one. Only "alpha" is affected, and
+# only when `case_sensitive` is TRUE: an uppercase letter becomes "upper", a
+# lowercase letter becomes "lower". Every other class is returned unchanged.
+# Keeping this separate from `char_class()` means the coarse classifier (and its
+# behaviour) is preserved, and the case split is a thin, opt-out layer on top.
+refine_class <- function(ch, coarse, case_sensitive) {
+  if (case_sensitive && coarse == "alpha") {
+    return(if (grepl("[A-Z]", ch)) "upper" else "lower")
+  }
+  coarse
+}
+
 # Break a string into class-runs.
 #
 # Returns a list of tokens. Each token is a list with:
-#   class : one of "digit" / "alpha" / "space" / "other"
+#   class : one of "digit" / "upper" / "lower" / "alpha" / "space" / "other"
+#           ("upper"/"lower" when case_sensitive, "alpha" when not)
 #   value : the literal substring this run covers (useful for `exact` output
 #           and for debugging)
 #   char  : a single representative character of the run (used when emitting an
 #           escaped literal for an "other" run)
 #   n     : the number of characters in the run (drives quantifiers)
 #
-# An empty string yields an empty list, which callers must handle.
-tokenize <- function(x) {
+# `case_sensitive` (default TRUE) controls whether letter runs are split by
+# case; see the header comment. An empty string yields an empty list, which
+# callers must handle.
+tokenize <- function(x, case_sensitive = TRUE) {
   if (!is.character(x) || length(x) != 1L) {
     stop("`tokenize()` expects a single string.", call. = FALSE)
   }
   chars <- strsplit(x, "", fixed = TRUE)[[1]]
   if (length(chars) == 0L) return(list())
 
-  classes <- vapply(chars, char_class, character(1))
+  coarse <- vapply(chars, char_class, character(1))
+  classes <- vapply(seq_along(chars), function(i) {
+    refine_class(chars[[i]], coarse[[i]], case_sensitive)
+  }, character(1))
 
   tokens <- list()
   run_start <- 1L

@@ -16,15 +16,16 @@ test_that("capture can be switched off", {
 })
 
 test_that("class level emits one atom per character", {
+  # case-aware default: lowercase letters render [a-z].
   p <- regexify("x", "ab12", generalize = "class", capture = FALSE,
                 anchor = "none", verify = FALSE)
-  expect_equal(as.character(p), "[A-Za-z][A-Za-z]\\d\\d")
+  expect_equal(as.character(p), "[a-z][a-z]\\d\\d")
 })
 
 test_that("loose level uses + quantifiers for class tokens", {
   p <- regexify("x", "ab12", generalize = "loose", capture = FALSE,
                 anchor = "none", verify = FALSE)
-  expect_equal(as.character(p), "[A-Za-z]+\\d+")
+  expect_equal(as.character(p), "[a-z]+\\d+")
 })
 
 test_that("exact level escapes the literal value", {
@@ -36,7 +37,8 @@ test_that("exact level escapes the literal value", {
 test_that("posix flavor swaps in POSIX atoms", {
   p <- regexify("x", "5 a", generalize = "compact", flavor = "posix",
                 capture = FALSE, anchor = "none", verify = FALSE)
-  expect_equal(as.character(p), "[0-9][[:space:]][A-Za-z]")
+  # digit/space become POSIX atoms; a lowercase letter stays an ASCII range.
+  expect_equal(as.character(p), "[0-9][[:space:]][a-z]")
 })
 
 test_that("other-run of a repeated literal uses {n}, not +", {
@@ -44,7 +46,7 @@ test_that("other-run of a repeated literal uses {n}, not +", {
                 anchor = "none", verify = FALSE)
   # letters become +, but the repeated '-' stays a literal with {2}
   # ('-' is not escaped: it is not special outside a character class)
-  expect_equal(as.character(p), "[A-Za-z]+-{2}[A-Za-z]+")
+  expect_equal(as.character(p), "[a-z]+-{2}[a-z]+")
 })
 
 test_that("explicit anchors wrap correctly outside the capture group", {
@@ -56,7 +58,9 @@ test_that("explicit anchors wrap correctly outside the capture group", {
 })
 
 test_that("input validation rejects bad arguments", {
-  expect_error(regexify(c("a", "b"), "a"), "single string")
+  # text and want vectors of incompatible (both > 1, unequal) lengths.
+  expect_error(regexify(c("a", "b"), c("a", "b", "c")), "same length")
+  expect_error(regexify(character(0), "a"), "at least one value")
   expect_error(regexify("a", character(0)), "at least one value")
   expect_error(regexify("a", "a", generalize = "nope"))
 })
