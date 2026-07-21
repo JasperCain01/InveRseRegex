@@ -26,11 +26,13 @@ These were agreed with the requester before any code was written.
 
 ```r
 regexify(text, want,
-         generalize = c("compact", "class", "loose", "exact"),
-         flavor     = c("pcre", "posix"),
-         capture    = TRUE,
-         anchor     = c("auto", "none", "line", "word"),
-         verify     = TRUE)
+         generalize     = c("compact", "class", "loose", "exact"),
+         flavor         = c("pcre", "posix"),
+         capture        = TRUE,
+         anchor         = c("auto", "none", "line", "word"),
+         verify         = TRUE,
+         case_sensitive = TRUE,                    # S10
+         fill           = c("skip", "literal", "class"))  # S9
 
 as_r_literal(x)          # paste-ready R source form of a pattern
 print(<regexify>)        # shows raw pattern + R-literal + match summary
@@ -40,6 +42,15 @@ print(<regexify>)        # shows raw pattern + R-literal + match summary
   cover all of them. If their structures differ, we fall back to an honest
   alternation of the per-example patterns rather than pretending to a single
   template.
+- `text` may be a single string, or a vector the same length as `want`, in
+  which case each `text`/`want` element is one **example** and the pattern is
+  learned from all of them at once (S11).
+- A `want` need **not** be a contiguous slice of its `text`. It is aligned to
+  the text; matched runs become captured **segments** and the text between them
+  is an **excluded filler** rendered per `fill` (S9). This is what makes
+  "the two capitalised words, then the year — skip the rest" expressible.
+- Letters are **case-aware by default** (`case_sensitive = TRUE`): a capitalised
+  word "Margaret" becomes `[A-Z][a-z]{7}`. `FALSE` folds to `[A-Za-z]` (S10).
 
 ### Generalization levels
 | Level | `"555-1234"` becomes | Notes |
@@ -77,6 +88,14 @@ print(<regexify>)        # shows raw pattern + R-literal + match summary
 - [x] **S7 — Docs & infra**: roxygen docs/NAMESPACE, README, GitHub Actions
       `R-CMD-check`, SessionStart hook for web sessions.
 - [x] **S8 — Green check**: full `R CMD check` clean; final polish.
+- [x] **S9 — Exclusions / alignment**: `R/align.R` aligns a non-contiguous
+      `want` to its `text` (greedy longest-substring), splitting it into
+      captured segments + excluded fillers; new `fill` argument.
+- [x] **S10 — Case awareness**: `case_sensitive` splits letter runs into
+      `[A-Z]`/`[a-z]` (default on), so capitalised words are expressible; folds
+      to `[A-Za-z]` when off.
+- [x] **S11 — Multiple examples**: vector `text` paired element-wise with
+      `want`; one template learned from all examples, verified per example.
 
 ## 5. Testing expectations (this cloud sandbox)
 
@@ -93,6 +112,32 @@ Newest entries at the top. Each entry records the stage, the commit, and any
 deviation or judgement call made along the way.
 
 <!-- LOG:START -->
+- **S9-S11 — Exclusions, case-awareness, multiple examples.** Three requested
+  capabilities, delivered together because they share a data path. (a) **S9 /
+  exclusions:** a `want` no longer has to be a contiguous slice of `text`. New
+  `R/align.R` aligns it with a greedy longest-substring pass, producing captured
+  *segments* and the *fillers* between them; the new `fill` argument renders a
+  filler as `.*?` (`"skip"`, default), the exact escaped text (`"literal"`), or a
+  generalised class (`"class"`). So `regexify("Margaret Thatcher was born in
+  1925.", "Margaret Thatcher 1925")` now yields
+  `\b([A-Z][a-z]{7}\s[A-Z][a-z]{7}\s).*?(\d{4})\b` — the two names and the year,
+  with "was born in" excluded. (b) **S10 / case-awareness:** `tokenize()` gains a
+  `case_sensitive` flag (default TRUE) that splits alpha runs into `upper`/`lower`
+  (`[A-Z]`/`[a-z]`, ASCII ranges in both flavors for locale-independence), making
+  capitalised words expressible; `FALSE` restores the folded `[A-Za-z]`.
+  **Deliberate default change:** existing letter output moves from `[A-Za-z]` to
+  case-aware classes; affected S2-S6 tests were updated and case_sensitive=FALSE
+  coverage added. (c) **S11 / multiple examples:** `text` may now be a vector
+  paired element-wise with `want` (or a single text recycled), each pair an
+  example; `build_core()` aligns every example, merges matching structures
+  segment-by-segment into one template (`{min,max}` ranges), and falls back to an
+  honest alternation when structures differ. Verification runs per example and is
+  capture-group-aware for non-contiguous wants. Judgement calls: (a) a `want`
+  that is not even a subsequence of its text (typo) is warned about and falls
+  back to being tokenised on its own; that heads-up is gated on `verify` and
+  skipped at `exact`; (b) leading/trailing fillers outside the captured region
+  are dropped so the pattern starts at the first thing asked for; (c) the
+  common contiguous-`want` path is byte-for-byte unchanged. 107 tests pass.
 - **S8 — Green check.** `R CMD check` passes with **0 errors, 0 warnings**. To
   get there: replaced `utils::head` with a tiny internal `take()` so the package
   needs *no* dependency (not even `utils`); made all R/test sources pure ASCII

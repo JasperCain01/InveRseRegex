@@ -37,11 +37,11 @@ remotes::install_github("JasperCain01/InveRseRegex")
 ```r
 library(InveRseRegex)
 
-# An identifier: letter then four digits
+# An identifier: a capital then four digits (letters are case-aware by default)
 regexify("order #A1099 shipped", "A1099")
 #> <regexify>
-#>   pattern : \b([A-Za-z]\d{4})\b
-#>   R source: "\\b([A-Za-z]\\d{4})\\b"
+#>   pattern : \b([A-Z]\d{4})\b
+#>   R source: "\\b([A-Z]\\d{4})\\b"
 #>   matches : 1 in text (A1099)
 
 # Several examples at once -> one template that covers them all
@@ -50,6 +50,37 @@ regexify("John:42, Jane:37", c("42", "37"))
 #>   pattern : \b(\d{2})\b
 #>   R source: "\\b(\\d{2})\\b"
 #>   matches : 2 in text (42, 37)
+```
+
+### Capitalisation and excluded middles
+
+The value you want need not be a single contiguous slice of the text. Ask for
+the two capitalised words and the year, and InveRseRegex captures each of them
+while **excluding** the "was born in" between:
+
+```r
+regexify("Margaret Thatcher was born in 1925.", "Margaret Thatcher 1925")
+#> <regexify>
+#>   pattern : \b([A-Z][a-z]{7}\s[A-Z][a-z]{7}\s).*?(\d{4})\b
+#>   R source: "\\b([A-Z][a-z]{7}\\s[A-Z][a-z]{7}\\s).*?(\\d{4})\\b"
+#>   matches : 1 in text (Margaret Thatcher was born in 1925)
+```
+
+Each excluded section (here `.*?`) is controlled by the `fill` argument:
+`"skip"` (a lazy wildcard, the default), `"literal"` (keep the exact skipped
+text), or `"class"` (a generalised class for it).
+
+### Learning from several examples at once
+
+Pass parallel `text` and `want` vectors and one template is learned from all of
+them — run lengths widen into `{min,max}` ranges as needed:
+
+```r
+regexify(c("Tony Blair was born in 1953. ", "John Major was born in 1943. "),
+         c("Tony Blair 1953",               "John Major 1943"))
+#> <regexify>
+#>   pattern : \b([A-Z][a-z]{3}\s[A-Z][a-z]{4}\s).*?(\d{4})\b
+#>   matches : 2 in text (Tony Blair was born in 1953, John Major was born in 1943)
 ```
 
 Use the result directly as a pattern — it is an ordinary character string:
@@ -107,12 +138,15 @@ Inferring a regex from an example is inherently ambiguous — many patterns matc
 any given string. InveRseRegex makes a sensible, verified guess; treat it as a
 strong starting point you can tweak, not an oracle.
 
-- Character classes are **ASCII** (`[A-Za-z]`, `\d`). Non-ASCII characters are
-  matched as escaped literals rather than generalised.
-- Letters are not case-split: `Abc` generalises to `[A-Za-z]{3}`, not
-  `[A-Z][a-z]{2}`.
+- Character classes are **ASCII** (`[A-Z]`, `[a-z]`, `\d`). Non-ASCII
+  characters are matched as escaped literals rather than generalised.
+- Letters are **case-aware by default**: `Abc` generalises to `[A-Z][a-z]{2}`.
+  Pass `case_sensitive = FALSE` to fold both cases into `[A-Za-z]`.
 - Multiple `want` values are merged into one template when they share a
   structure, and fall back to an alternation when they do not.
+- A `want` that skips over text is split into captured segments joined by an
+  excluded `fill`; a `want` that is not even a subsequence of its `text`
+  (usually a typo) is flagged with a warning.
 
 ## License
 

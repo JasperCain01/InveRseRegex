@@ -1,6 +1,6 @@
 Package: InveRseRegex
 Title: Infer Regular Expressions from Example Text
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R:
     person("InveRseRegex", "Authors", email = "noreply@example.com",
            role = c("aut", "cre"))

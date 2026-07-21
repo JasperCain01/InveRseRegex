@@ -19,16 +19,25 @@ test_that("a non-ASCII letter is treated as 'other', not 'alpha'", {
 })
 
 test_that("tokenize merges runs of the same class", {
+  # Default is case-aware, so a lowercase run is class "lower".
   toks <- InveRseRegex:::tokenize("abc123")
   expect_equal(length(toks), 2L)
-  expect_equal(toks[[1]]$class, "alpha")
+  expect_equal(toks[[1]]$class, "lower")
   expect_equal(toks[[1]]$n, 3L)
   expect_equal(toks[[2]]$class, "digit")
   expect_equal(toks[[2]]$n, 3L)
 })
 
-test_that("tokenize folds mixed-case letters into a single alpha run", {
+test_that("case-aware tokenize splits letter runs by case", {
+  # "AbcDef" -> upper(1) lower(2) upper(1) lower(2)
   toks <- InveRseRegex:::tokenize("AbcDef")
+  expect_equal(vapply(toks, `[[`, character(1), "class"),
+               c("upper", "lower", "upper", "lower"))
+  expect_equal(vapply(toks, `[[`, integer(1), "n"), c(1L, 2L, 1L, 2L))
+})
+
+test_that("case-insensitive tokenize folds letters into one alpha run", {
+  toks <- InveRseRegex:::tokenize("AbcDef", case_sensitive = FALSE)
   expect_equal(length(toks), 1L)
   expect_equal(toks[[1]]$class, "alpha")
   expect_equal(toks[[1]]$n, 6L)
@@ -56,7 +65,7 @@ test_that("tokenize handles a phone-number-like string", {
 test_that("tokenize handles single-character and empty strings", {
   one <- InveRseRegex:::tokenize("x")
   expect_equal(length(one), 1L)
-  expect_equal(one[[1]]$class, "alpha")
+  expect_equal(one[[1]]$class, "lower")
 
   expect_equal(length(InveRseRegex:::tokenize("")), 0L)
 })

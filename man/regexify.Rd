@@ -11,17 +11,25 @@ regexify(
   flavor = c("pcre", "posix"),
   capture = TRUE,
   anchor = c("auto", "none", "line", "word"),
-  verify = TRUE
+  verify = TRUE,
+  case_sensitive = TRUE,
+  fill = c("skip", "literal", "class")
 )
 }
 \arguments{
-\item{text}{A single string: the example text the value(s) come from. Used
-for anchoring decisions and (when \code{verify = TRUE}) to check the generated
-pattern actually matches.}
+\item{text}{The example text the value(s) come from. Usually a single string.
+May also be a character vector the same length as \code{want}, in which case each
+\code{text}/\code{want} element is treated as one example and the pattern is learned
+from all of them at once. Used for anchoring and (when \code{verify = TRUE}) to
+check the generated pattern actually matches.}
 
-\item{want}{The substring(s) to match, as a character vector. A single value
-is the common case; several values cause the pattern to be generalised so
-it matches all of them.}
+\item{want}{The value(s) to match, as a character vector. A single value is
+the common case. Several values are learned together: with one \code{text} they
+are alternative examples of the same field; paired element-wise with a
+vector \code{text} they are one example each. A \code{want} need NOT be a contiguous
+slice of its \code{text} -- if it skips over intervening text (e.g. you want the
+name and the year but not the "was born in" between them), the skipped
+sections are excluded and bridged per the \code{fill} argument.}
 
 \item{generalize}{How aggressively to generalise. One of \code{"compact"} (merge
 runs into \code{{n}} quantifiers, the default), \code{"class"} (one class atom per
@@ -31,8 +39,8 @@ character), \code{"loose"} (\code{+} quantifiers) or \code{"exact"} (escaped lit
 \verb{\\\\s}, \verb{\\\\b} and works with stringr and base R when \code{perl = TRUE}.
 \code{"posix"} uses \verb{[0-9]}, \verb{[[:space:]]} for use with base R's default engine.}
 
-\item{capture}{Wrap the matched value in a capture group so tools like
-\code{stringr::str_match()} return it. \code{TRUE} by default.}
+\item{capture}{Wrap each matched value/segment in a capture group so tools
+like \code{stringr::str_match()} return it. \code{TRUE} by default.}
 
 \item{anchor}{How to anchor the pattern. \code{"auto"} (default) anchors the whole
 string with \code{^}/\code{$} when \code{want} is the entire \code{text}, otherwise adds word
@@ -41,6 +49,17 @@ boundaries where appropriate. \code{"none"}, \code{"line"} (\code{^}/\code{$}) a
 
 \item{verify}{If \code{TRUE} (default), check the generated pattern against \code{text}
 and warn if it fails to match a requested value or matches extra text.}
+
+\item{case_sensitive}{If \code{TRUE} (default), letters are split by case, so a
+capitalised word "Margaret" becomes \verb{[A-Z][a-z]\{7\}} and case structure is
+preserved. If \code{FALSE}, letters fold into a single case-insensitive class
+\verb{[A-Za-z]}.}
+
+\item{fill}{How to bridge excluded sections when \code{want} is not contiguous in
+\code{text}. \code{"skip"} (default) inserts a lazy wildcard \verb{.*?}; \code{"literal"} keeps
+the exact skipped text (falling back to \verb{.*?} if it differs across
+examples); \code{"class"} inserts a generalised class pattern for the skipped
+text.}
 }
 \value{
 A length-one character vector of class \code{"regexify"} holding the
@@ -55,4 +74,9 @@ returns a regular expression that captures them.
 \examples{
 regexify("Call 555-1234 today", "555-1234")
 regexify("id: ABC-0099", "ABC-0099", generalize = "loose")
+# A non-contiguous want: capture the name and the year, exclude the middle.
+regexify("Margaret Thatcher was born in 1925.", "Margaret Thatcher 1925")
+# Learn one pattern from several labelled examples at once.
+regexify(c("Tony Blair was born in 1953.", "John Major was born in 1943."),
+         c("Tony Blair 1953", "John Major 1943"))
 }
