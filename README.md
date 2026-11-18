@@ -150,4 +150,4 @@ strong starting point you can tweak, not an oracle.
 
 ## License
 
-MIT © InveRseRegex Authors
+MIT © Jasper Cain
