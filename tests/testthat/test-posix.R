@@ -29,7 +29,7 @@ test_that("posix alternation (non-capturing group) works under the default engin
   expect_true(grepl(as.character(p), "42", perl = FALSE))
 })
 
-test_that("posix verification uses the default engine and stays silent on a good match", {
+test_that("posix verification stays silent on a good match", {
   expect_no_warning(
     regexify("call 555-1234 now", "555-1234", flavor = "posix")
   )
