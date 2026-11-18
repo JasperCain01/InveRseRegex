@@ -34,6 +34,19 @@ test_that("exact level escapes the literal value", {
   expect_equal(as.character(p), "a\\.b\\+c")
 })
 
+test_that("metacharacters in the value are escaped at the default compact level", {
+  # Most users never change `generalize`, so escaping has to hold at compact,
+  # not just at exact. An unescaped `.` or `+` would over-match silently.
+  p <- regexify("call +44 (0)20 now", "+44 (0)20", capture = FALSE,
+                anchor = "none")
+  expect_equal(as.character(p), "\\+\\d{2}\\s\\(\\d\\)\\d{2}")
+  expect_true(grepl(p, "+44 (0)20", perl = TRUE))
+
+  p <- regexify("costs 3.50 each", "3.50", capture = FALSE, anchor = "none")
+  expect_equal(as.character(p), "\\d\\.\\d{2}")
+  expect_false(grepl(p, "3x50", perl = TRUE))
+})
+
 test_that("posix flavor swaps in POSIX atoms", {
   p <- regexify("x", "5 a", generalize = "compact", flavor = "posix",
                 capture = FALSE, anchor = "none", verify = FALSE)

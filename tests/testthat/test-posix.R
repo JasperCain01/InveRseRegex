@@ -9,11 +9,8 @@ posix_matches <- function(text, want, value = want, ...) {
   grepl(as.character(p), value, perl = FALSE)
 }
 
-test_that("posix digit/space/alpha atoms match under the default engine", {
+test_that("posix atoms and compact quantifiers match under the default engine", {
   expect_true(posix_matches("id 5 a", "5 a"))
-})
-
-test_that("posix compact quantifiers match under the default engine", {
   expect_true(posix_matches("call 555-1234 now", "555-1234"))
 })
 
@@ -36,4 +33,17 @@ test_that("posix verification uses the default engine and stays silent on a good
   expect_no_warning(
     regexify("call 555-1234 now", "555-1234", flavor = "posix")
   )
+})
+
+test_that("verification runs a posix pattern through the default engine, not PCRE", {
+  # `\<` / `\>` are word anchors to TRE (R's default engine) but literal
+  # angle brackets to PCRE, so this pattern matches the text only when it is
+  # checked with perl = FALSE. If verification ignored the flavor, the posix
+  # call would warn and the pcre call would not.
+  ex  <- list(list(text = "x 42 y", want = "42"))
+  al  <- list(InveRseRegex:::align_want_to_text("x 42 y", "42"))
+  pat <- "\\<[0-9]{2}\\>"
+  expect_no_warning(InveRseRegex:::verify_pattern(pat, ex, al, flavor = "posix"))
+  expect_warning(InveRseRegex:::verify_pattern(pat, ex, al, flavor = "pcre"),
+                 "does not match")
 })
