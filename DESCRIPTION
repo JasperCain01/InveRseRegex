@@ -2,7 +2,7 @@ Package: InveRseRegex
 Title: Infer Regular Expressions from Example Text
 Version: 0.1.0
 Authors@R:
-    person("InveRseRegex", "Authors", email = "noreply@example.com",
+    person("Jasper", "Cain", email = "151431054+JasperCain01@users.noreply.github.com",
            role = c("aut", "cre"))
 Description: A lightweight tool for the inverse of the usual regex workflow:
     instead of writing a pattern to find text, you provide the text and the

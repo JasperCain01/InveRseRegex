@@ -24,7 +24,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: InveRseRegex Authors \email{noreply@example.com}
+\strong{Maintainer}: Jasper Cain \email{151431054+JasperCain01@users.noreply.github.com}
 
 }
 \keyword{internal}
