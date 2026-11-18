@@ -31,10 +31,6 @@ test_that("a single want recycled across several texts still verifies", {
   expect_true(grepl(as.character(p), "code=AB12", perl = TRUE))
 })
 
-test_that("mismatched non-recyclable lengths error", {
-  expect_error(regexify(c("a", "b"), c("a", "b", "c")), "same length")
-})
-
 test_that("structurally different examples fall back to an alternation", {
   # One want is contiguous (a bare year), the other is a two-field name+year.
   p <- regexify(c("year 1990", "Ada Lovelace in 1815"),

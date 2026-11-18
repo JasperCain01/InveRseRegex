@@ -1,11 +1,8 @@
 # Stage 10 tests: case-aware generalization.
 
-test_that("case-aware default distinguishes upper and lower", {
+test_that("case-aware default renders a capitalised word as [A-Z][a-z]{n}", {
   p <- regexify("x", "Abc", capture = FALSE, anchor = "none", verify = FALSE)
   expect_equal(as.character(p), "[A-Z][a-z]{2}")
-})
-
-test_that("a capitalised word renders as [A-Z][a-z]{n}", {
   p <- regexify("x", "Margaret", capture = FALSE, anchor = "none",
                 verify = FALSE)
   expect_equal(as.character(p), "[A-Z][a-z]{7}")

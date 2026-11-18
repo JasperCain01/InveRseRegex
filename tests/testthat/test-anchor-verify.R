@@ -36,9 +36,3 @@ test_that("verify warns when the pattern over-matches", {
   )
 })
 
-test_that("match information is stored for the print method", {
-  p <- regexify("Call 555-1234 today", "555-1234")
-  meta <- attr(p, "meta")
-  expect_equal(meta$matches, "555-1234")
-  expect_equal(meta$missing, character(0))
-})

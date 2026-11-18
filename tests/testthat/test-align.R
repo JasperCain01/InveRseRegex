@@ -25,11 +25,6 @@ test_that("align drops leading filler before the first segment", {
   expect_equal(al$parts[[1]]$start, 5L)
 })
 
-test_that("align reports ok = FALSE when want is not a subsequence", {
-  al <- InveRseRegex:::align_want_to_text("hello world", "xyz")
-  expect_false(al$ok)
-})
-
 test_that("headline: non-contiguous want yields captured segments + skip", {
   p <- regexify("Margaret Thatcher was born in 1925.",
                 "Margaret Thatcher 1925")
@@ -57,6 +52,7 @@ test_that("fill = 'class' generalises the excluded text", {
 })
 
 test_that("a want that is not a subsequence warns and falls back", {
+  expect_false(InveRseRegex:::align_want_to_text("hello world", "xzq")$ok)
   expect_warning(
     regexify("hello world", "xzq"),
     "not found within its"
