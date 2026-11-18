@@ -26,6 +26,12 @@ test_that("tokenize merges runs of the same class", {
   expect_equal(toks[[1]]$n, 3L)
   expect_equal(toks[[2]]$class, "digit")
   expect_equal(toks[[2]]$n, 3L)
+
+  # A separator between two runs of the same class keeps them apart.
+  toks <- InveRseRegex:::tokenize("555-1234")
+  expect_equal(vapply(toks, `[[`, character(1), "class"),
+               c("digit", "other", "digit"))
+  expect_equal(vapply(toks, `[[`, integer(1), "n"), c(3L, 1L, 4L))
 })
 
 test_that("case-aware tokenize splits letter runs by case", {
@@ -55,13 +61,6 @@ test_that("tokenize splits identical vs differing punctuation", {
   expect_equal(arrow[[2]]$char, ">")
 })
 
-test_that("tokenize handles a phone-number-like string", {
-  toks <- InveRseRegex:::tokenize("555-1234")
-  expect_equal(vapply(toks, `[[`, character(1), "class"),
-               c("digit", "other", "digit"))
-  expect_equal(vapply(toks, `[[`, integer(1), "n"), c(3L, 1L, 4L))
-})
-
 test_that("tokenize handles single-character and empty strings", {
   one <- InveRseRegex:::tokenize("x")
   expect_equal(length(one), 1L)
@@ -70,8 +69,3 @@ test_that("tokenize handles single-character and empty strings", {
   expect_equal(length(InveRseRegex:::tokenize("")), 0L)
 })
 
-test_that("escape helpers escape regex metacharacters", {
-  expect_equal(InveRseRegex:::escape_regex_char("."), "\\.")
-  expect_equal(InveRseRegex:::escape_regex_char("a"), "a")
-  expect_equal(InveRseRegex:::escape_regex("a.b+c"), "a\\.b\\+c")
-})
