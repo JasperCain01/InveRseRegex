@@ -24,7 +24,7 @@ test_that("posix word-boundary auto anchor works under the default engine", {
 test_that("posix alternation (non-capturing group) works under the default engine", {
   p <- regexify("x", c("42", "abc"), flavor = "posix", capture = FALSE,
                 anchor = "none", verify = FALSE)
-  expect_equal(as.character(p), "(?:[0-9]{2}|[a-z]{3})")
+  expect_equal(as.character(p), "(?:[0-9]{2}|[a-z]+)")
   expect_true(grepl(as.character(p), "abc", perl = FALSE))
   expect_true(grepl(as.character(p), "42", perl = FALSE))
 })

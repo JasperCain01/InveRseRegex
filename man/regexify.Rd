@@ -31,9 +31,12 @@ slice of its \code{text} -- if it skips over intervening text (e.g. you want the
 name and the year but not the "was born in" between them), the skipped
 sections are excluded and bridged per the \code{fill} argument.}
 
-\item{generalize}{How aggressively to generalise. One of \code{"compact"} (merge
-runs into \code{{n}} quantifiers, the default), \code{"class"} (one class atom per
-character), \code{"loose"} (\code{+} quantifiers) or \code{"exact"} (escaped literal).}
+\item{generalize}{How aggressively to generalise. One of \code{"compact"} (the
+default: runs of digits, capitals, spaces and punctuation become exact
+\code{{n}} counts, while words, meaning runs of two or more lowercase letters,
+become \code{+} because a word's length is rarely meaningful), \code{"class"} (one
+class atom per character), \code{"loose"} (\code{+} quantifiers throughout) or
+\code{"exact"} (escaped literal).}
 
 \item{flavor}{Regex flavor of the output. \code{"pcre"} (default) uses \verb{\\\\d},
 \verb{\\\\s}, \verb{\\\\b} and works with stringr and base R when \code{perl = TRUE}.

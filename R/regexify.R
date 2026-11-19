@@ -31,11 +31,22 @@ base_fragment <- function(tok, flavor) {
   escape_regex_char(tok$char)
 }
 
+# Word runs: lowercase letters, or letters of either case when
+# `case_sensitive = FALSE`. At the `compact` level these are the one place a
+# run's length is NOT pinned, because the length of a word is incidental: the
+# example "Margaret" says nothing about how long the next name will be. Digits,
+# capitals, whitespace and punctuation keep exact counts, since that is where
+# fixed widths carry meaning (years, dates, phone numbers, codes, initials).
+# A single letter is not treated as a word run, so "5a" or the "A" of "A1099"
+# (case-insensitively) stay exactly one letter.
+is_word_run <- function(cls) cls %in% c("lower", "alpha")
+
 # `render_token()` applies the generalization level to a token's atom.
 #
 #   exact   : handled by the caller (whole value escaped literally).
 #   class   : one atom per character, no quantifier (e.g. \d\d\d).
-#   compact : atom + {n} when the run repeats (e.g. \d{3}); bare atom when n==1.
+#   compact : atom + {n} when the run repeats (e.g. \d{3}); bare atom when n==1;
+#             atom + `+` for a word run of two or more letters (e.g. [a-z]+).
 #   loose   : atom + `+` for the class-based tokens (e.g. \d+).
 #
 # Judgement call: quantifier generalization (`{n}` / `+`) is only applied to the
@@ -55,7 +66,13 @@ render_token <- function(tok, level, flavor) {
   switch(
     level,
     class   = strrep(base, n),
-    compact = if (n == 1L) base else paste0(base, "{", n, "}"),
+    compact = if (n == 1L) {
+      base
+    } else if (is_word_run(tok$class)) {
+      paste0(base, "+")
+    } else {
+      paste0(base, "{", n, "}")
+    },
     loose   = paste0(base, "+"),
     # `exact` never reaches here (handled upstream); guard anyway.
     stop("unhandled generalize level: ", level, call. = FALSE)
@@ -109,6 +126,8 @@ render_quant <- function(base, cls, nmin, nmax, level) {
     return(paste0(base, "{", nmin, ",", nmax, "}"))
   }
   if (level == "loose") return(paste0(base, "+"))
+  # Compact word runs: unbounded once any example has two or more letters.
+  if (level == "compact" && is_word_run(cls) && nmax >= 2L) return(paste0(base, "+"))
   if (nmin == nmax) {
     if (level == "class") return(strrep(base, nmin))
     return(if (nmin == 1L) base else paste0(base, "{", nmin, "}"))
@@ -313,9 +332,12 @@ new_regexify <- function(pattern, meta = list()) {
 #'   slice of its `text` -- if it skips over intervening text (e.g. you want the
 #'   name and the year but not the "was born in" between them), the skipped
 #'   sections are excluded and bridged per the `fill` argument.
-#' @param generalize How aggressively to generalise. One of `"compact"` (merge
-#'   runs into `{n}` quantifiers, the default), `"class"` (one class atom per
-#'   character), `"loose"` (`+` quantifiers) or `"exact"` (escaped literal).
+#' @param generalize How aggressively to generalise. One of `"compact"` (the
+#'   default: runs of digits, capitals, spaces and punctuation become exact
+#'   `{n}` counts, while words, meaning runs of two or more lowercase letters,
+#'   become `+` because a word's length is rarely meaningful), `"class"` (one
+#'   class atom per character), `"loose"` (`+` quantifiers throughout) or
+#'   `"exact"` (escaped literal).
 #' @param flavor Regex flavor of the output. `"pcre"` (default) uses `\\d`,
 #'   `\\s`, `\\b` and works with stringr and base R when `perl = TRUE`.
 #'   `"posix"` uses `[0-9]`, `[[:space:]]` for use with base R's default engine.

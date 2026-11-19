@@ -22,13 +22,13 @@ test_that("aligned 'other' runs must share the literal character", {
 test_that("structurally different values fall back to an alternation", {
   p <- regexify("x", c("42", "abc"),
                 capture = FALSE, anchor = "none", verify = FALSE)
-  expect_equal(as.character(p), "(?:\\d{2}|[a-z]{3})")
+  expect_equal(as.character(p), "(?:\\d{2}|[a-z]+)")
 })
 
 test_that("alternation is wrapped in a single capture group when capturing", {
   p <- regexify("x", c("42", "abc"),
                 capture = TRUE, anchor = "none", verify = FALSE)
-  expect_equal(as.character(p), "(\\d{2}|[a-z]{3})")
+  expect_equal(as.character(p), "(\\d{2}|[a-z]+)")
 })
 
 test_that("multi-value with auto anchor and verify matches all values", {

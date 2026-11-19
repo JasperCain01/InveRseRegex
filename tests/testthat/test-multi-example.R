@@ -9,7 +9,7 @@ test_that("parallel text/want vectors learn a shared template", {
              "Tony Blair 1953")
   p <- regexify(texts, wants)
   expect_equal(as.character(p),
-               "\\b([A-Z][a-z]{3,7}\\s[A-Z][a-z]{4,7}\\s).*?(\\d{4})\\b")
+               "\\b([A-Z][a-z]+\\s[A-Z][a-z]+\\s).*?(\\d{4})\\b")
   meta <- attr(p, "meta")
   expect_length(meta$matches, 3L)
   expect_equal(meta$missing, character(0))

@@ -29,7 +29,7 @@ test_that("headline: non-contiguous want yields captured segments + skip", {
   p <- regexify("Margaret Thatcher was born in 1925.",
                 "Margaret Thatcher 1925")
   expect_equal(as.character(p),
-               "\\b([A-Z][a-z]{7}\\s[A-Z][a-z]{7}\\s).*?(\\d{4})\\b")
+               "\\b([A-Z][a-z]+\\s[A-Z][a-z]+\\s).*?(\\d{4})\\b")
   # And it really matches the source text.
   expect_true(grepl(as.character(p),
                     "Margaret Thatcher was born in 1925.", perl = TRUE))
@@ -40,7 +40,7 @@ test_that("fill = 'literal' keeps the excluded text", {
                 "Margaret Thatcher 1925", fill = "literal",
                 anchor = "none", verify = FALSE)
   expect_equal(as.character(p),
-               "([A-Z][a-z]{7}\\s[A-Z][a-z]{7}\\s)was born in (\\d{4})")
+               "([A-Z][a-z]+\\s[A-Z][a-z]+\\s)was born in (\\d{4})")
 })
 
 test_that("fill = 'class' generalises the excluded text", {
@@ -48,7 +48,7 @@ test_that("fill = 'class' generalises the excluded text", {
                 "Margaret Thatcher 1925", fill = "class",
                 anchor = "none", verify = FALSE)
   expect_equal(as.character(p),
-    "([A-Z][a-z]{7}\\s[A-Z][a-z]{7}\\s)[a-z]{3}\\s[a-z]{4}\\s[a-z]{2}\\s(\\d{4})")
+    "([A-Z][a-z]+\\s[A-Z][a-z]+\\s)[a-z]+\\s[a-z]+\\s[a-z]+\\s(\\d{4})")
 })
 
 test_that("a want that is not a subsequence warns and falls back", {
