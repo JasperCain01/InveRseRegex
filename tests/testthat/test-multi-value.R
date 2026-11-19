@@ -35,6 +35,22 @@ test_that("multi-value with auto anchor and verify matches all values", {
   p <- regexify("John:42, Jane:37", c("42", "37"))
   expect_equal(as.character(p), "\\b(\\d{2})\\b")
   meta <- attr(p, "meta")
-  expect_setequal(meta$matches, c("42", "37"))
+  expect_equal(meta$matches, c("42", "37"))
   expect_equal(meta$missing, character(0))
+  expect_equal(meta$extras, character(0))
+})
+
+test_that("values from one text are not counted twice or as extras of each other", {
+  expect_no_warning(p <- regexify("John:42, Jane:37", c("42", "37")))
+  out <- capture.output(print(p))
+  expect_true(any(grepl("matches : 2 in text (42, 37)", out, fixed = TRUE)))
+  expect_false(any(grepl("also matched", out, fixed = TRUE)))
+})
+
+test_that("an unwanted match in a shared text is still reported", {
+  expect_warning(p <- regexify("John:42, Jane:37, Bob:55", c("42", "37")),
+                 "also matches 1 other")
+  meta <- attr(p, "meta")
+  expect_equal(meta$matches, c("42", "37", "55"))
+  expect_equal(meta$extras, "55")
 })

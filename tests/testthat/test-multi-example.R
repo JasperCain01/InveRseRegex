@@ -38,3 +38,11 @@ test_that("structurally different examples fall back to an alternation", {
                 capture = FALSE, verify = FALSE, anchor = "none")
   expect_match(as.character(p), "\\|")   # an alternation
 })
+
+test_that("extras are judged against the wanted values for the same text", {
+  # "12" is wanted from the first text but not from the second, so matching it
+  # in the second text is an extra.
+  expect_warning(p <- regexify(c("a 12", "b 34 12"), c("12", "34")),
+                 "also matches 1 other")
+  expect_equal(attr(p, "meta")$extras, "12")
+})

@@ -1,6 +1,6 @@
 # What the tests protect
 
-The suite has 54 `test_that()` blocks in `tests/testthat/`. Run it with `devtools::test()`; it also runs under `R CMD check` in CI.
+The suite has 57 `test_that()` blocks in `tests/testthat/`. Run it with `devtools::test()`; it also runs under `R CMD check` in CI.
 
 Most tests pin the exact pattern string `regexify()` returns. That's deliberate: the pattern *is* the product, and users paste it straight into their own code, so a silent change in what comes back is the most damaging failure the package can have. The cost is that a deliberate change of house style (for example `\d` → `[0-9]`) will fail a large share of the suite at once. When that happens, update the expected strings; don't weaken the assertions.
 
@@ -71,7 +71,9 @@ Every pattern is built from these runs, so a tokeniser fault reaches every outpu
 | aligned 'other' runs must share the literal character | `1-2` and `1/2` give an alternation, not a pattern that accepts either separator anywhere. | High |
 | structurally different values fall back to an alternation | `42` and `abc` → `(?:\d{2}\|[a-z]{3})`. | High |
 | alternation is wrapped in a single capture group when capturing | The alternation is one group, so callers get one capture per match. | Medium |
-| multi-value with auto anchor and verify matches all values | End to end, with anchoring and verification on: both values are matched and the match metadata used by `print()` is correct. | High |
+| multi-value with auto anchor and verify matches all values | End to end, with anchoring and verification on: both values are matched, each match is listed once, and nothing is reported as an extra. | High |
+| values from one text are not counted twice or as extras of each other | No warning, and `print()` shows `2 in text (42, 37)`. Guards a bug where each match was counted once per wanted value and each value was flagged as an "extra" of the other. | Medium |
+| an unwanted match in a shared text is still reported | The fix above must not hide genuine over-matching: a third number in the same text still triggers the warning and is listed in `extras`. | High |
 
 ## `test-align.R`: values that skip part of the text
 
@@ -93,6 +95,7 @@ Every pattern is built from these runs, so a tokeniser fault reaches every outpu
 | the learned pattern extracts segments from every example | The capture groups pull the right pieces out of each example. | High |
 | a single want recycled across several texts still verifies | Length-one `want` recycles. | Medium |
 | structurally different examples fall back to an alternation | Unrelated example shapes give an alternation rather than an error. | Medium |
+| extras are judged against the wanted values for the same text | A value wanted from one text counts as an extra when it is matched in a different text where it was not asked for. | Medium |
 
 ## `test-posix.R`: the POSIX flavour under R's default engine
 
