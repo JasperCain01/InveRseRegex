@@ -33,7 +33,7 @@ mkdir -p "$OUT/pkg" "$OUT/webr"
 cp -R "$DEMO/site/." "$OUT/"
 
 # 2. The webR runtime: only the files the browser actually loads.
-cp "$WEBR/webr.mjs" "$WEBR/webr-worker.js" "$WEBR/R.js" "$WEBR/R.wasm" \
+cp "$WEBR/webr.js" "$WEBR/webr-worker.js" "$WEBR/R.js" "$WEBR/R.wasm" \
    "$WEBR/libRblas.so" "$WEBR/libRlapack.so" "$OUT/webr/"
 cp -R "$WEBR/vfs" "$OUT/webr/"
 

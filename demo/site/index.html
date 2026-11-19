@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>InveRseRegex: regex, backwards</title>
+  <meta name="description" content="Give it some text and the part you want; get back a regular expression. The InveRseRegex R package, running in your browser via webR.">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="title">
+      <h1>InveRseRegex</h1>
+      <p class="tagline">Regex, backwards. Give it some text and the part you want, and get back a regular expression that captures it.</p>
+    </div>
+    <div class="header-side">
+      <span id="r-status" class="r-status loading" role="status" aria-live="polite">Starting R&hellip;</span>
+      <a class="repo-link" href="https://github.com/JasperCain01/InveRseRegex">Package on GitHub</a>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="column inputs" aria-label="Inputs">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Your examples</h2>
+          <label class="preset">
+            <span class="visually-hidden">Load an example</span>
+            <select id="preset">
+              <option value="">Load an example&hellip;</option>
+            </select>
+          </label>
+        </div>
+        <p class="hint">Type or paste some text, then say which part of it you want. Select text in the box and use the buttons to fill in the wanted value. Add more examples and the pattern is learned from all of them at once.</p>
+        <div id="examples"></div>
+        <button type="button" id="add-example" class="secondary">+ Add another example</button>
+      </div>
+
+      <div class="panel">
+        <h2>Options</h2>
+        <div class="options">
+          <label>
+            <span>How general</span>
+            <select id="opt-generalize">
+              <option value="exact">exact: the literal value</option>
+              <option value="class">class: one class per character</option>
+              <option value="compact" selected>compact: runs counted, e.g. \d{3}</option>
+              <option value="loose">loose: runs of any length, e.g. \d+</option>
+            </select>
+          </label>
+          <label>
+            <span>Flavour</span>
+            <select id="opt-flavor">
+              <option value="pcre" selected>pcre: stringr, or base R with perl = TRUE</option>
+              <option value="posix">posix: base R's default engine</option>
+            </select>
+          </label>
+          <label>
+            <span>Anchoring</span>
+            <select id="opt-anchor">
+              <option value="auto" selected>auto</option>
+              <option value="none">none</option>
+              <option value="word">word boundaries (\b)</option>
+              <option value="line">whole text (^&hellip;$)</option>
+            </select>
+          </label>
+          <label>
+            <span>Skipped text between wanted parts</span>
+            <select id="opt-fill">
+              <option value="skip" selected>skip: anything, as little as possible</option>
+              <option value="literal">literal: the exact skipped text</option>
+              <option value="class">class: generalised like the rest</option>
+            </select>
+          </label>
+          <label class="check">
+            <input type="checkbox" id="opt-capture" checked>
+            <span>Capture the wanted parts in groups</span>
+          </label>
+          <label class="check">
+            <input type="checkbox" id="opt-case" checked>
+            <span>Tell upper and lower case apart</span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <section class="column outputs" aria-label="Results">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Pattern</h2>
+          <button type="button" id="share" class="secondary small">Copy link to this</button>
+        </div>
+        <div id="verdict" class="verdict" aria-live="polite"></div>
+        <div class="code-row">
+          <code id="pattern" class="pattern">&nbsp;</code>
+          <button type="button" class="copy small" data-copy-target="pattern">Copy</button>
+        </div>
+        <div class="code-label">As an R string (paste this into a script)</div>
+        <div class="code-row">
+          <code id="r-literal">&nbsp;</code>
+          <button type="button" class="copy small" data-copy-target="r-literal">Copy</button>
+        </div>
+        <ul id="messages" class="messages"></ul>
+      </div>
+
+      <div class="panel">
+        <h2>Matches in your examples</h2>
+        <div id="highlights" class="highlights"></div>
+        <div id="legend" class="legend"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Try it on other text</h2>
+        <textarea id="test-text" rows="3" spellcheck="false" placeholder="Paste some different text here to see what the pattern picks out."></textarea>
+        <div id="test-highlight" class="highlights"></div>
+      </div>
+
+      <div class="panel">
+        <h2>What the pattern means</h2>
+        <table id="explain" class="explain">
+          <thead><tr><th scope="col">Piece</th><th scope="col">Meaning</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <h2>How general should it be?</h2>
+        <p class="hint">The same examples at each level. Choose a row to switch to it.</p>
+        <table id="levels" class="levels">
+          <thead><tr><th scope="col">Level</th><th scope="col">Pattern</th><th scope="col">Fit</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <h2>Use it in R</h2>
+        <div id="snippets"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Everything runs in your browser: R itself is compiled to WebAssembly by <a href="https://docs.r-wasm.org/webr/latest/">webR</a>, so nothing you type is sent anywhere. The first visit downloads R (around 25&nbsp;MB); after that it is cached.</p>
+    <p id="build-info"></p>
+  </footer>
+
+  <template id="example-template">
+    <div class="example">
+      <div class="example-head">
+        <span class="example-title"></span>
+        <button type="button" class="remove-example link" aria-label="Remove this example">Remove</button>
+      </div>
+      <label class="field">
+        <span>Text</span>
+        <textarea class="ex-text" rows="2" spellcheck="false"></textarea>
+      </label>
+      <div class="selection-actions">
+        <span>Selected text:</span>
+        <button type="button" class="sel-replace small" disabled>Use as wanted value</button>
+        <button type="button" class="sel-append small" disabled title="For wanted parts with other text in between, e.g. a name and a year">Add to wanted value</button>
+        <button type="button" class="sel-new small" disabled>Add as another value</button>
+      </div>
+      <div class="wants"></div>
+    </div>
+  </template>
+
+  <template id="want-template">
+    <div class="want">
+      <label class="field">
+        <span>Wanted</span>
+        <input type="text" class="ex-want" spellcheck="false">
+      </label>
+      <button type="button" class="remove-want link" aria-label="Remove this wanted value">&times;</button>
+    </div>
+  </template>
+</body>
+</html>

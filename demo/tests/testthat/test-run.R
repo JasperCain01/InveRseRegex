@@ -19,6 +19,19 @@ test_that("verification warnings and extras are reported, not thrown", {
   expect_match(r$warnings, "also matches")
 })
 
+test_that("two wanted values from one text are not counted as extras", {
+  r <- demo_run(c("John:42, Jane:37", "John:42, Jane:37"), c("42", "37"))
+  expect_length(r$extras, 0)
+  expect_length(r$warnings, 0)
+  expect_true(all(vapply(r$levels, `[[`, numeric(1), "extras") == 0))
+})
+
+test_that("extras agree with the package's warning when it fires", {
+  r <- demo_run("Paid 2024-03-15, next due 2024-04-15", "2024-03-15")
+  expect_equal(as.character(r$extras), "2024-04-15")
+  expect_match(r$warnings, "also matches")
+})
+
 test_that("bad input comes back as ok = FALSE with a message", {
   r <- demo_run(c("a", "b", "c"), c("a", "b"))
   expect_false(r$ok)
