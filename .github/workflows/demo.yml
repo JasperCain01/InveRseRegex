@@ -38,7 +38,12 @@ jobs:
 
       - uses: r-lib/actions/setup-r@v2
         with:
-          r-version: release
+          # Must match the R inside the pinned webR (webR 0.6.1 ships R 4.6.0).
+          # The package is built here and loaded there, and R warns when a
+          # package was built under a newer R than the one loading it. Bump
+          # this together with webR in demo/package.json; the webR test step
+          # fails if the two drift apart in the wrong direction.
+          r-version: '4.6.0'
           use-public-rspm: true
 
       - uses: r-lib/actions/setup-r-dependencies@v2

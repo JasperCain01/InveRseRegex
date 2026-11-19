@@ -23,6 +23,22 @@ if (!fs.existsSync(PKG)) {
 const webR = new WebR({ interactive: false });
 await webR.init();
 
+// The package binary must not be built under a newer R than webR's: R warns
+// about that on library(), and an internal format change could break loading.
+// In CI the build R is pinned to webR's exact version (see demo.yml); this
+// catches a webR upgrade that forgot to move the pin. An older build R (e.g. a
+// developer's own machine) is fine.
+const info = JSON.parse(fs.readFileSync(path.join(DEMO, '_site', 'build-info.json'), 'utf8'));
+const webrR = await webR.evalRString('as.character(getRversion())');
+const newer = await webR.evalRBoolean(
+  `package_version("${info.built_with_r}") > package_version("${webrR}")`);
+console.log(`Package built with R ${info.built_with_r}; webR runs R ${webrR}.`);
+if (newer) {
+  console.error(`The package was built under a newer R (${info.built_with_r}) than webR's (${webrR}). ` +
+    'Set r-version in .github/workflows/demo.yml to match webR.');
+  process.exit(1);
+}
+
 // Copy a host directory into webR's virtual filesystem.
 async function copyDir(from, to) {
   await webR.FS.mkdir(to);

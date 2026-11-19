@@ -55,7 +55,8 @@ cp "$BIN" "$OUT/pkg/InveRseRegex.tar.gz"
 VERSION="$(sed -n 's/^Version: *//p' "$ROOT/DESCRIPTION")"
 COMMIT="$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo unknown)"
 WEBR_VERSION="$(node -p "require('$DEMO/node_modules/webr/package.json').version")"
-printf '{"package_version":"%s","commit":"%s","webr_version":"%s"}\n' \
-  "$VERSION" "$COMMIT" "$WEBR_VERSION" > "$OUT/build-info.json"
+BUILT_R="$(Rscript -e 'cat(as.character(getRversion()))')"
+printf '{"package_version":"%s","commit":"%s","webr_version":"%s","built_with_r":"%s"}\n' \
+  "$VERSION" "$COMMIT" "$WEBR_VERSION" "$BUILT_R" > "$OUT/build-info.json"
 
 echo "Built demo site in $OUT ($(du -sh "$OUT" | cut -f1))"

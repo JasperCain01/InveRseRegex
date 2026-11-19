@@ -40,6 +40,10 @@ show up in the demo after the next `npm run build`.
 - The package binary is built by native R (`R CMD INSTALL --build`) and loaded
   into webR as-is. That only works because InveRseRegex is pure R. If it ever
   gains compiled code, the build has to move to the r-wasm `rwasm` tooling.
+- CI builds the package under the same R version webR runs (pinned in
+  `.github/workflows/demo.yml`). When upgrading webR in `package.json`, move
+  that pin to match; `npm run test:webr` fails if the package was built under
+  a newer R than webR's.
 - The explanation table only understands the regex syntax the package
   generates. `tests/testthat/test-explain.R` runs every option combination over
   a set of inputs and fails if any piece comes back "not explained", so a
