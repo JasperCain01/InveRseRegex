@@ -10,3 +10,7 @@ inst/doc
 
 # OS cruft
 .DS_Store
+
+# Browser demo build output and dependencies
+demo/node_modules
+demo/_site

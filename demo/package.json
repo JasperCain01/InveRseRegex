@@ -1,0 +1,16 @@
+{
+  "name": "inverseregex-demo",
+  "private": true,
+  "description": "Browser demo of the InveRseRegex R package, running R via webR",
+  "type": "module",
+  "scripts": {
+    "build": "bash scripts/build.sh",
+    "serve": "node scripts/serve.mjs _site",
+    "test:webr": "node tests/webr-suite.mjs",
+    "test:e2e": "node tests/e2e.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0",
+    "webr": "0.6.1"
+  }
+}
