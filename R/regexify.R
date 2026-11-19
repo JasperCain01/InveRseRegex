@@ -509,50 +509,62 @@ infer_auto_anchor <- function(examples, aligns) {
 #                 result -- warned about loudly).
 #   * `extras`  : substrings the pattern matches that were not requested (a sign
 #                 the pattern may be over-general -- warned about as a heads-up).
-# The full vector of matches (across examples) is returned for display.
+# The full vector of matches (across distinct texts) is returned for display.
+#
+# The work is done once per DISTINCT text, not once per example. Several
+# wanted values from one text arrive as several examples sharing that text;
+# handling them one at a time would count each match once per value, and would
+# report each wanted value as an "extra" of the others.
 #
 # For a contiguous want the full match equals the want, so we compare directly.
 # For a non-contiguous want the full match spans the excluded fillers too, so we
 # instead check that the pattern's CAPTURE GROUPS recover each wanted segment.
+# Extras are only judged for texts whose wants are all contiguous: when a want
+# is non-contiguous, its full match legitimately contains unrequested text.
 verify_pattern <- function(pattern, examples, aligns, flavor,
                            generalize = "compact") {
   perl <- flavor == "pcre"
+  texts <- vapply(examples, `[[`, character(1), "text")
+  wants <- vapply(examples, `[[`, character(1), "want")
   all_full <- character(0)
   missing <- character(0)
   extras <- character(0)
+  n_extra <- 0L
 
-  # De-duplicate identical (text, want) pairs so a recycled text is not
-  # double-counted, and group wants by text for the extras count.
-  seen <- character(0)
-  for (i in seq_along(examples)) {
-    txt <- examples[[i]]$text
-    wnt <- examples[[i]]$want
-    key <- paste(txt, wnt, sep = "\r")
-    if (key %in% seen) next
-    seen <- c(seen, key)
-
+  for (txt in unique(texts)) {
+    idx <- which(texts == txt)
     # A non-contiguous want that could not be aligned was already reported at
     # construction time; re-checking would just repeat the news with a
     # misleading "try a looser level" hint, so skip it. (The `exact` level does
     # not use alignment, so it is verified normally even when ok is FALSE.)
-    if (!aligns[[i]]$ok && generalize != "exact") next
+    idx <- idx[vapply(idx, function(i) aligns[[i]]$ok || generalize == "exact",
+                      logical(1))]
+    if (length(idx) == 0L) next
 
     m <- gregexpr(pattern, txt, perl = perl)
     full <- regmatches(txt, m)[[1]]
-    if (length(full) == 0L) full <- character(0)
     all_full <- c(all_full, full)
 
-    if (align_is_plain(aligns[[i]])) {
-      # Contiguous: the want should appear verbatim among the matches.
-      if (!(wnt %in% full)) missing <- c(missing, wnt)
-      extras <- c(extras, setdiff(full, examples[[i]]$want))
-    } else {
-      # Non-contiguous: check the capture groups recover the wanted segments.
-      rm <- regexec(pattern, txt, perl = perl)
-      groups <- regmatches(txt, rm)[[1]]
-      captured <- if (length(groups) > 1L) groups[-1L] else character(0)
-      segs <- align_segments(aligns[[i]])
-      if (!all(segs %in% captured)) missing <- c(missing, wnt)
+    plain <- vapply(idx, function(i) align_is_plain(aligns[[i]]), logical(1))
+    for (k in seq_along(idx)) {
+      i <- idx[[k]]
+      if (plain[[k]]) {
+        # Contiguous: the want should appear verbatim among the matches.
+        if (!(wants[[i]] %in% full)) missing <- c(missing, wants[[i]])
+      } else {
+        # Non-contiguous: check the capture groups recover the wanted segments.
+        rm <- regexec(pattern, txt, perl = perl)
+        groups <- regmatches(txt, rm)[[1]]
+        captured <- if (length(groups) > 1L) groups[-1L] else character(0)
+        segs <- align_segments(aligns[[i]])
+        if (!all(segs %in% captured)) missing <- c(missing, wants[[i]])
+      }
+    }
+
+    if (all(plain)) {
+      unwanted <- full[!(full %in% wants[idx])]
+      n_extra <- n_extra + length(unwanted)
+      extras <- c(extras, unwanted)
     }
   }
   missing <- unique(missing)
@@ -564,9 +576,7 @@ verify_pattern <- function(pattern, examples, aligns, flavor,
             ". Try a looser `generalize` level or check the input.",
             call. = FALSE)
   }
-  wanted_all <- unique(vapply(examples, `[[`, character(1), "want"))
-  n_extra <- length(all_full) - sum(all_full %in% wanted_all)
-  if (n_extra > 0L && length(extras) > 0L) {
+  if (n_extra > 0L) {
     eg <- take(extras, 3L)
     warning(sprintf(
       "Generated pattern also matches %d other substring(s) in the text%s. Consider a stricter `generalize` level or anchoring.",
