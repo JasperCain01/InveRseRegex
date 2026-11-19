@@ -18,6 +18,10 @@ regexify("Call 555-1234 today", "555-1234")
 #>   matches : 1 in text (555-1234)
 ```
 
+**Try it in your browser:** <https://jaspercain01.github.io/InveRseRegex/>.
+The demo runs the package itself through webR, so nothing is installed and
+nothing you type leaves your machine.
+
 ## Why
 
 Writing regex is fiddly, and the hardest part is often just remembering the
