@@ -195,6 +195,7 @@ td:first-child { white-space: nowrap; }
 .levels tbody tr { cursor: pointer; }
 .levels tbody tr:hover { background: var(--accent-soft); }
 .levels tbody tr.current { background: var(--accent-soft); font-weight: 600; }
+.levels td:last-child { white-space: nowrap; }
 .fit-ok { color: var(--ok); } .fit-warn { color: var(--warn); } .fit-bad { color: var(--bad); }
 
 .snippet { margin-bottom: 0.75rem; }
