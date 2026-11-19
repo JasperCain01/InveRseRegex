@@ -1,6 +1,6 @@
 # What the tests protect
 
-The suite has 57 `test_that()` blocks in `tests/testthat/`. Run it with `devtools::test()`; it also runs under `R CMD check` in CI.
+The suite has 61 `test_that()` blocks in `tests/testthat/`. Run it with `devtools::test()`; it also runs under `R CMD check` in CI.
 
 Most tests pin the exact pattern string `regexify()` returns. That's deliberate: the pattern *is* the product, and users paste it straight into their own code, so a silent change in what comes back is the most damaging failure the package can have. The cost is that a deliberate change of house style (for example `\d` → `[0-9]`) will fail a large share of the suite at once. When that happens, update the expected strings; don't weaken the assertions.
 
@@ -44,11 +44,15 @@ Every pattern is built from these runs, so a tokeniser fault reaches every outpu
 
 | Test | Purpose | Severity |
 |---|---|---|
-| case-aware default renders a capitalised word as [A-Z][a-z]{n} | `Abc` and `Margaret` keep their leading capital in the pattern. | High |
+| case-aware default renders a capitalised word as [A-Z][a-z]+ | `Abc` and `Margaret` keep their leading capital, and the rest of the word is open-ended. | High |
 | an all-caps run renders as [A-Z]{n} | `NASA` → `[A-Z]{4}`. | High |
 | case_sensitive = FALSE folds to [A-Za-z] (legacy behaviour) | The opt-out still produces the case-insensitive class. | Medium |
-| case-aware merging across examples keeps the case structure | Several title-case names merge into `[A-Z][a-z]{3,7}`, not a mixed-case class. | High |
+| case-aware merging across examples keeps the case structure | Several title-case names merge into `[A-Z][a-z]+`, not a mixed-case class. | High |
 | upper and lower do not merge across examples | `AB` and `ab` give an alternation rather than one pattern that would also match `aB`. Guards against over-generalisation. | High |
+| compact pins digits, capitals and punctuation but not word runs | The core of the `compact` rule in one pattern: `INV-0042 Paid` → `[A-Z]{3}-\d{4}\s[A-Z][a-z]+`. | High |
+| a single letter stays a single letter at compact | `5a` → `\d[a-z]`, and a case-insensitive `A1099` keeps a single-letter prefix. Stops the word rule loosening initials and code prefixes. | Medium |
+| across examples, a word run is unbounded only if some run is 2+ long | `Jo`/`Al` stay `[a-z]`; adding `Tom` makes it `[a-z]+`. | Medium |
+| a name learned from one example matches names of other lengths | The reason for the rule: the pattern learned from "Margaret Thatcher" also extracts "Clement Attlee" and 1883. | High |
 | loose applies + to every run, including the leading capital | Documents that `loose` is uniform: `[A-Z]+[a-z]+`. | Medium |
 
 ## `test-anchor-verify.R`: automatic anchoring and the verification safety net
@@ -69,7 +73,7 @@ Every pattern is built from these runs, so a tokeniser fault reaches every outpu
 | aligned values with equal lengths share one template | `42` and `37` → `\d{2}`. | High |
 | aligned values with differing lengths yield a range quantifier | `42` and `1234` → `\d{2,4}`. | High |
 | aligned 'other' runs must share the literal character | `1-2` and `1/2` give an alternation, not a pattern that accepts either separator anywhere. | High |
-| structurally different values fall back to an alternation | `42` and `abc` → `(?:\d{2}\|[a-z]{3})`. | High |
+| structurally different values fall back to an alternation | `42` and `abc` → `(?:\d{2}\|[a-z]+)`. | High |
 | alternation is wrapped in a single capture group when capturing | The alternation is one group, so callers get one capture per match. | Medium |
 | multi-value with auto anchor and verify matches all values | End to end, with anchoring and verification on: both values are matched, each match is listed once, and nothing is reported as an extra. | High |
 | values from one text are not counted twice or as extras of each other | No warning, and `print()` shows `2 in text (42, 37)`. Guards a bug where each match was counted once per wanted value and each value was flagged as an "extra" of the other. | Medium |
@@ -91,7 +95,7 @@ Every pattern is built from these runs, so a tokeniser fault reaches every outpu
 
 | Test | Purpose | Severity |
 |---|---|---|
-| parallel text/want vectors learn a shared template | Three biographies give one pattern with range quantifiers that verifies against all three. | High |
+| parallel text/want vectors learn a shared template | Three biographies give one pattern that verifies against all three. | High |
 | the learned pattern extracts segments from every example | The capture groups pull the right pieces out of each example. | High |
 | a single want recycled across several texts still verifies | Length-one `want` recycles. | Medium |
 | structurally different examples fall back to an alternation | Unrelated example shapes give an alternation rather than an error. | Medium |

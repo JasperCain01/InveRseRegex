@@ -61,10 +61,14 @@ while **excluding** the "was born in" between:
 ```r
 regexify("Margaret Thatcher was born in 1925.", "Margaret Thatcher 1925")
 #> <regexify>
-#>   pattern : \b([A-Z][a-z]{7}\s[A-Z][a-z]{7}\s).*?(\d{4})\b
-#>   R source: "\\b([A-Z][a-z]{7}\\s[A-Z][a-z]{7}\\s).*?(\\d{4})\\b"
+#>   pattern : \b([A-Z][a-z]+\s[A-Z][a-z]+\s).*?(\d{4})\b
+#>   R source: "\\b([A-Z][a-z]+\\s[A-Z][a-z]+\\s).*?(\\d{4})\\b"
 #>   matches : 1 in text (Margaret Thatcher was born in 1925)
 ```
+
+The words become `[a-z]+` rather than `[a-z]{7}`: the length of a name is
+incidental, so the pattern also finds "Clement Attlee was born in 1883".
+Digits keep their exact count, because there the width usually matters.
 
 Each excluded section (here `.*?`) is controlled by the `fill` argument:
 `"skip"` (a lazy wildcard, the default), `"literal"` (keep the exact skipped
@@ -73,14 +77,16 @@ text), or `"class"` (a generalised class for it).
 ### Learning from several examples at once
 
 Pass parallel `text` and `want` vectors and one template is learned from all of
-them — run lengths widen into `{min,max}` ranges as needed:
+them. Where the examples disagree about a fixed-width run, its count widens into
+a `{min,max}` range:
 
 ```r
-regexify(c("Tony Blair was born in 1953. ", "John Major was born in 1943. "),
-         c("Tony Blair 1953",               "John Major 1943"))
+regexify(c("Ref AB-12 issued", "Ref XYZ-3401 issued"),
+         c("AB-12",            "XYZ-3401"))
 #> <regexify>
-#>   pattern : \b([A-Z][a-z]{3}\s[A-Z][a-z]{4}\s).*?(\d{4})\b
-#>   matches : 2 in text (Tony Blair was born in 1953, John Major was born in 1943)
+#>   pattern : \b([A-Z]{2,3}-\d{2,4})\b
+#>   R source: "\\b([A-Z]{2,3}-\\d{2,4})\\b"
+#>   matches : 2 in text (AB-12, XYZ-3401)
 ```
 
 Use the result directly as a pattern — it is an ordinary character string:
@@ -112,7 +118,7 @@ value `"555-1234"`:
 |--------------|--------|---------|
 | `"exact"` | `555-1234` | The literal value (metacharacters escaped). |
 | `"class"` | `\d\d\d-\d\d\d\d` | One character class per character. |
-| `"compact"` *(default)* | `\d{3}-\d{4}` | Runs collapsed into `{n}` counts. |
+| `"compact"` *(default)* | `\d{3}-\d{4}` | Runs collapsed into `{n}` counts, except words (two or more lowercase letters), which become `+`. |
 | `"loose"` | `\d+-\d+` | Runs collapsed into `+` (most flexible). |
 
 ## Flavors
@@ -140,8 +146,12 @@ strong starting point you can tweak, not an oracle.
 
 - Character classes are **ASCII** (`[A-Z]`, `[a-z]`, `\d`). Non-ASCII
   characters are matched as escaped literals rather than generalised.
-- Letters are **case-aware by default**: `Abc` generalises to `[A-Z][a-z]{2}`.
+- Letters are **case-aware by default**: `Abc` generalises to `[A-Z][a-z]+`.
   Pass `case_sensitive = FALSE` to fold both cases into `[A-Za-z]`.
+- At the default `compact` level a **word is open-ended** (`[a-z]+`) while
+  digits, capitals and punctuation keep exact widths. A lowercase code such as
+  `ab-12` therefore becomes `[a-z]+-\d{2}`; use `generalize = "class"` if you
+  need the letters counted exactly.
 - Multiple `want` values are merged into one template when they share a
   structure, and fall back to an alternation when they do not.
 - A `want` that skips over text is split into captured segments joined by an
