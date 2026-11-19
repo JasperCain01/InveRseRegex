@@ -359,18 +359,6 @@ demo_regexify <- function(text, want, generalize, flavor, capture, anchor,
   list(result = result, warnings = warnings)
 }
 
-# Substrings the pattern matched that were not asked for. This follows the
-# rule regexify() uses for its own "also matches" warning (matches counted
-# against every wanted value), rather than reading meta$extras directly: that
-# field is worked out per example, so with two wanted values from one text each
-# value is listed as an "extra" for the other.
-demo_extras <- function(meta, want) {
-  full <- as.character(meta$matches)
-  wanted <- unique(want)
-  if (length(full) - sum(full %in% wanted) == 0L) return(character(0))
-  setdiff(as.character(meta$extras), wanted)
-}
-
 # Run regexify() and build everything the page needs. Errors in the user's
 # input come back as list(ok = FALSE, error = <message>).
 demo_run <- function(text, want, generalize = "compact", flavor = "pcre",
@@ -399,7 +387,7 @@ demo_run <- function(text, want, generalize = "compact", flavor = "pcre",
     }
     m <- attr(r$result, "meta")
     list(level = lv, pattern = as.character(r$result),
-         missing = length(m$missing), extras = length(demo_extras(m, want)))
+         missing = length(m$missing), extras = length(m$extras))
   })
 
   list(
@@ -408,7 +396,7 @@ demo_run <- function(text, want, generalize = "compact", flavor = "pcre",
     r_literal = InveRseRegex::as_r_literal(pattern),
     warnings = I(run$warnings),
     missing = I(as.character(meta$missing)),
-    extras = I(demo_extras(meta, want)),
+    extras = I(as.character(meta$extras)),
     examples = lapply(seq_along(text), function(i) {
       list(text = text[[i]], spans = demo_spans(pattern, text[[i]], perl))
     }),
